@@ -5,17 +5,27 @@ class Bar {
     private $dir;
     private $marks;
     private $lastScore;
+    private $speed;
 
     public static $dirLeft = "LEFT";
     public static $dirRight = "RIGHT";
 
-    public function __construct($width) {
+    public function __construct($width, $speed) {
         $this->x = 0;
         $this->width = $width;
+        $this->speed = $speed;
         $this->dir = Bar::$dirRight;
         $this->marks = array();
     }
 
+    public function getSpeed() {
+        return $this->speed;
+    }
+
+    public function setSpeed($s) {
+        $this->speed = $s;
+    }
+    
     public function setLastScore($ls) {
         $this->lastScore = $ls;
     }

@@ -3,7 +3,6 @@ class Game {
     private $term;
     private $bar;
     private $ticks;
-    private $tickInterval;
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -11,9 +10,8 @@ class Game {
 
         echo "\n";
 
-        $this->bar = new Bar(Config::$defaultBarLength);
+        $this->bar = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
         $this->ticks = 0;
-        $this->tickInterval = Config::$defaultTickInterval;
 
         $this->gameLoop();
     }
@@ -25,7 +23,6 @@ class Game {
 
         // START OF INFINITE LOOP
         while (1) {
-            //echo $this->ticks . "\n";
             $c = Config::waitForInput();
 
             switch ($c) {
@@ -74,7 +71,7 @@ class Game {
 
             $this->ticks++;
 
-            if ($this->ticks >= $this->tickInterval) {
+            if ($this->ticks >= $this->bar->getSpeed()) {
                 $this->ticks = 0;
                 $this->bar->tick();
 
@@ -106,7 +103,7 @@ class Game {
         $segment = 1 / $width;
 
         $ticks = $this->ticks;
-        $tickInterval = $this->tickInterval;
+        $tickInterval = $this->bar->getSpeed();
 
         $percent = $ticks / $tickInterval;
         

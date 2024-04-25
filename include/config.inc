@@ -2,6 +2,7 @@
 class Config {
     public static $defaultBarLength = 50;
     public static $defaultTickInterval = 200;
+    public static $debug = true;
 
     public static function keypressLeftArrow() {
         return chr(27) . chr(91) . chr(68);
@@ -53,7 +54,10 @@ class Config {
     }
 
     public static function draw($d) {
-        system("clear");
+        if (!Config::$debug) {
+            system("clear");
+        }
+        
         echo $d;
     }
 }
