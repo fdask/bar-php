@@ -13,7 +13,7 @@ class Game {
 
         $this->bar = new Bar(Config::$defaultBarLength);
         $this->ticks = 0;
-        $this->tickInterval = 1000;
+        $this->tickInterval = Config::$defaultTickInterval;
 
         $this->gameLoop();
     }
@@ -39,14 +39,14 @@ class Game {
                     break;
                 case Config::keypressLeftArrow():
                     // go left if we're going right already
-                    if ($this->bar->getDir() == "RIGHT") {
+                    if ($this->bar->getDir() == Bar::$dirRight) {
                         $this->bar->switchDir();
                     }
 
                     break;
                 case Config::keypressRightArrow():
                     // go right if we're going left already
-                    if ($this->bar->getDir() == "LEFT") {
+                    if ($this->bar->getDir() == Bar::$dirLeft) {
                         $this->bar->switchDir();
                     }
 

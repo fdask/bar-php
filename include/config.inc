@@ -1,6 +1,7 @@
 <?php
 class Config {
-    public static $defaultBarLength = 100;
+    public static $defaultBarLength = 50;
+    public static $defaultTickInterval = 200;
 
     public static function keypressLeftArrow() {
         return chr(27) . chr(91) . chr(68);
@@ -52,7 +53,7 @@ class Config {
     }
 
     public static function draw($d) {
-        //system("clear");
+        system("clear");
         echo $d;
     }
 }

@@ -6,10 +6,13 @@ class Bar {
     private $marks;
     private $lastScore;
 
+    public static $dirLeft = "LEFT";
+    public static $dirRight = "RIGHT";
+
     public function __construct($width) {
         $this->x = 0;
         $this->width = $width;
-        $this->dir = "RIGHT";
+        $this->dir = Bar::$dirRight;
         $this->marks = array();
     }
 
@@ -34,15 +37,15 @@ class Bar {
     }
 
     public function switchDir() {
-        if ($this->dir == "RIGHT") {
-            $this->dir = "LEFT";
+        if ($this->dir == Bar::$dirRight) {
+            $this->dir = Bar::$dirLeft;
         } else {
-            $this->dir = "RIGHT";
+            $this->dir = Bar::$dirRight;
         }
     }
 
     public function move() {
-        if ($this->dir == "RIGHT") {
+        if ($this->dir == Bar::$dirRight) {
             $this->moveRight();
         } else {
             $this->moveLeft();
@@ -53,7 +56,7 @@ class Bar {
         if ($this->x > 0) {
             $this->x--;
         } else {
-            $this->dir = "RIGHT";
+            $this->dir = Bar::$dirRight;
             $this->x++;
         }
     }
@@ -62,7 +65,7 @@ class Bar {
         if ($this->x < $this->width - 1) {
             $this->x++;
         } else {
-            $this->dir = "LEFT";
+            $this->dir = Bar::$dirLeft;
             $this->x--;
         }
     }
