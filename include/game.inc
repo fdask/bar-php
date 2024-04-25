@@ -3,6 +3,7 @@ class Game {
     private $term;
     private $bar;
     private $ticks;
+    private $doubleSpeed;
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -12,6 +13,7 @@ class Game {
 
         $this->bar = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
         $this->ticks = 0;
+        $this->doubleSpeed = false;
 
         $this->gameLoop();
     }
@@ -53,6 +55,11 @@ class Game {
                     $this->bar->clearMarks();
 
                     break;
+                case 'd':
+                    // doubleTime!
+                    $this->doubleSpeed = true;
+
+                    break;
                 case 'm':
                     // mark
                     $this->bar->addMark();
@@ -71,9 +78,20 @@ class Game {
 
             $this->ticks++;
 
-            if ($this->ticks >= $this->bar->getSpeed()) {
+            $speed = $this->bar->getSpeed();
+
+            if ($this->doubleSpeed) {
+                $speed = floor($speed / 2);
+            }
+
+            if ($this->ticks >= $speed) {
                 $this->ticks = 0;
                 $this->bar->tick();
+
+                // reset doublespeed if we hit an edge
+                if ($this->bar->onEdge()) {
+                    $this->doubleSpeed = false;
+                }
 
                 $this->draw();
             }

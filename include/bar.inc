@@ -25,7 +25,7 @@ class Bar {
     public function setSpeed($s) {
         $this->speed = $s;
     }
-    
+
     public function setLastScore($ls) {
         $this->lastScore = $ls;
     }
@@ -69,6 +69,14 @@ class Bar {
             $this->dir = Bar::$dirRight;
             $this->x++;
         }
+    }
+
+    public function onEdge() {
+        if ($this->x == 0 || $this->x == ($this->width - 1)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function moveRight() {
