@@ -4,9 +4,9 @@ class Config {
     public static $defaultTickInterval = 200;
 
     public static $minBarWidth = 5;
-    public static $maxBarWidth = 140;
-    public static $minBarSpeed = 500;
-    public static $maxBarSpeed = 8000;
+    public static $maxBarWidth = 100;
+    public static $minBarSpeed = 250;
+    public static $maxBarSpeed = 1800;
 
     public static $debug = true;
 

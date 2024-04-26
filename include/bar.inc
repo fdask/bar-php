@@ -3,7 +3,6 @@ class Bar {
     private $x;
     private $width;
     private $dir;
-    private $lastScore;
     private $speed;
     private $contents;
 
@@ -41,10 +40,6 @@ class Bar {
 
     public function setSpeed($s) {
         $this->speed = $s;
-    }
-
-    public function setLastScore($ls) {
-        $this->lastScore = $ls;
     }
 
     public function getX() {
@@ -176,10 +171,6 @@ class Bar {
             } else {
                 $ret .= "-";
             }
-        }
-
-        if (!is_null($this->lastScore)) {
-            $ret .= " [" . $this->lastScore . "%]";
         }
 
         return $ret;

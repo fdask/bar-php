@@ -4,6 +4,7 @@ class Game {
     private $bar;
     private $bars;
     private $ticks;
+    private $lastScore;
     private $doubleSpeed;
 
     public function __construct() {
@@ -17,6 +18,7 @@ class Game {
         $this->bars[] = $b;
 
         // initialize some settings
+        $this->lastScore = null;
         $this->bar = 0; 
         $this->ticks = 0;
         $this->doubleSpeed = false;
@@ -76,7 +78,7 @@ class Game {
                     $this->bars[$this->bar]->switchDir();
 
                     // get the last score
-                    $this->bars[$this->bar]->setLastScore($this->getScore());
+                    $this->lastScore = $this->getScore();
 
                     break;
                 case Config::keypressUpArrow():
@@ -220,8 +222,14 @@ class Game {
 
     public function draw() {
         $d = $this->bars[$this->bar]->draw();
-        
-        $d .= " bar: " . $this->bar . "\n";
+
+        $d .= " bar: " . $this->bar;
+
+        if (!is_null($this->lastScore)) {
+            $d .= " [" . $this->lastScore . "%]";
+        }
+
+        $d .= "\n";
 
         Config::draw($d);
     }
