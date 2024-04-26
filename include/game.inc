@@ -17,6 +17,8 @@ class Game {
         $c = new Bar(40, 2000);   
         $d = new Bar(rand(20, 100), rand(300, 1000));
         
+        $d->addRandomRock();
+
         $this->bars[] = $b;
         $this->bars[] = $c;
         $this->bars[] = $d;
@@ -108,6 +110,18 @@ class Game {
                 case 'c':
                     // clear out the marks
                     $this->bars[$this->bar]->clearMarks();
+
+                    break;
+                case Config::keypressShiftRightArrow():
+                    if ($this->bars[$this->bar]->getDir() == Bar::$dirRight) {
+                        $this->doubleSpeed = true;
+                    }
+
+                    break;
+                case Config::keypressShiftLeftArrow():
+                    if ($this->bars[$this->bar]->getDir() == Bar::$dirLeft) {
+                        $this->doubleSpeed = true;
+                    }
 
                     break;
                 case 'd':

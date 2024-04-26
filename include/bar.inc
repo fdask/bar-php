@@ -71,12 +71,33 @@ class Bar {
         }
     }
 
+    public function getRocks() {
+        $ret = array();
+
+        for ($x = 0; $x < $this->width; $x++) {
+            if ($this->contents[$x] instanceof Rock) {
+                $ret[] = $x;
+            }
+        }
+
+        return $ret;
+    }
+
     public function moveLeft() {
-        if ($this->x > 0) {
+        if ($this->x > 0 && (!in_array(($this->x - 1), $this->getRocks()))) {
             $this->x--;
         } else {
             $this->dir = Bar::$dirRight;
             $this->x++;
+        }
+    }
+
+    public function moveRight() {
+        if ($this->x < $this->width - 1 && (!in_array(($this->x + 1), $this->getRocks()))) {
+            $this->x++;
+        } else {
+            $this->dir = Bar::$dirLeft;
+            $this->x--;
         }
     }
 
@@ -98,13 +119,12 @@ class Bar {
         return false;
     }
 
-    public function moveRight() {
-        if ($this->x < $this->width - 1) {
-            $this->x++;
-        } else {
-            $this->dir = Bar::$dirLeft;
-            $this->x--;
-        }
+    public function addRandomRock() {
+        do {
+            $x = rand(0, $this->width - 1);
+        } while (!is_null($this->contents[$x]));
+
+        $this->contents[$x] = new Rock($x);
     }
 
     public function getDir() {
@@ -140,6 +160,8 @@ class Bar {
                         //echo "Door doing down!\n";
                         $ret .= Config::arrowDown();
                     }
+                } else if ($c instanceof Rock) {
+                    $ret .= "*";
                 }
             } else if ($x == $this->x) {
                 $ret .= "|";
