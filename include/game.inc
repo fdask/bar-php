@@ -2,6 +2,7 @@
 class Game {
     private $term;
     private $bar;
+    private $bars;
     private $ticks;
     private $doubleSpeed;
 
@@ -11,7 +12,22 @@ class Game {
 
         echo "\n";
 
-        $this->bar = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
+        $this->bar = 0; 
+        $b = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
+        $b->addDoor(new Door(3, 1, Door::$dirUp));
+        $b->addDoor(new Door(30, 2, Door::$dirDown));
+
+        $c = new Bar(30, 3000);
+        $c->addDoor(new Door(25, 0, Door::$dirDown));
+        $c->addDoor(new Door(3, 2, Door::$dirUp));
+
+        $d = new Bar(rand(20, 100), rand(300, 3000));
+        $d->addDoor(new Door(10, 0, Door::$dirUp));
+        $d->addDoor(new Door(20, 1, Door::$dirDown));
+        $this->bars[] = $b;
+        $this->bars[] = $c;
+        $this->bars[] = $d;
+        
         $this->ticks = 0;
         $this->doubleSpeed = false;
 
@@ -30,29 +46,61 @@ class Game {
             switch ($c) {
                 case ' ':
                     // switch direction
-                    $this->bar->switchDir();
+                    $this->bars[$this->bar]->switchDir();
 
                     // get the last score
-                    $this->bar->setLastScore($this->getScore());
+                    $this->bars[$this->bar]->setLastScore($this->getScore());
 
+                    break;
+                case Config::keypressUpArrow():
+                case Config::keypressDownArrow():
+                    // check to see if we hit a doorway
+                    $dest = $this->bars[$this->bar]->onDoor();
+
+                    // we're on a door.  change to it!
+                    if ($dest !== false) {
+                        //echo "ON THE DOOR!\n";
+                        
+                        $dir = $this->bars[$this->bar]->getDoorDir();
+
+                        //echo "dir is '$dir'\n";
+
+                        if (
+                            ($dir == Door::$dirUp && $c == Config::keypressUpArrow()) ||
+                            ($dir == Door::$dirDown && $c == Config::keypressDownArrow())
+                        ) {
+                            $oldbar = $this->bar;
+                            $olddir = $this->bars[$this->bar]->getDir();
+                            $this->bar = $dest;
+
+                            $newX = $this->bars[$this->bar]->getDoorX($oldbar);
+                            //echo "newX is $newX\n";
+                            $this->bars[$this->bar]->setX($newX);
+                            $this->bars[$this->bar]->setDir($olddir);
+                        }
+                    } else {
+                        echo "MISSED THE DOOR!\n";
+                    }
+
+                
                     break;
                 case Config::keypressLeftArrow():
                     // go left if we're going right already
-                    if ($this->bar->getDir() == Bar::$dirRight) {
-                        $this->bar->switchDir();
+                    if ($this->bars[$this->bar]->getDir() == Bar::$dirRight) {
+                        $this->bars[$this->bar]->switchDir();
                     }
 
                     break;
                 case Config::keypressRightArrow():
                     // go right if we're going left already
-                    if ($this->bar->getDir() == Bar::$dirLeft) {
-                        $this->bar->switchDir();
+                    if ($this->bars[$this->bar]->getDir() == Bar::$dirLeft) {
+                        $this->bars[$this->bar]->switchDir();
                     }
 
                     break;
                 case 'c':
                     // clear out the marks
-                    $this->bar->clearMarks();
+                    $this->bars[$this->bar]->clearMarks();
 
                     break;
                 case 'd':
@@ -62,8 +110,8 @@ class Game {
                     break;
                 case 'm':
                     // mark
-                    $this->bar->addMark();
-                    $this->bar->switchDir();
+                    $this->bars[$this->bar]->addMark();
+                    $this->bars[$this->bar]->switchDir();
 
                     break;
                 case 'q':
@@ -78,7 +126,8 @@ class Game {
 
             $this->ticks++;
 
-            $speed = $this->bar->getSpeed();
+            $x = $this->bars[$this->bar]->getX();
+            $speed = $this->bars[$this->bar]->getSpeed();
 
             if ($this->doubleSpeed) {
                 $speed = floor($speed / 2);
@@ -86,10 +135,10 @@ class Game {
 
             if ($this->ticks >= $speed) {
                 $this->ticks = 0;
-                $this->bar->tick();
+                $this->bars[$this->bar]->tick();
 
                 // reset doublespeed if we hit an edge
-                if ($this->bar->onEdge()) {
+                if ($this->bars[$this->bar]->onEdge()) {
                     $this->doubleSpeed = false;
                 }
 
@@ -115,13 +164,13 @@ class Game {
      * travelled within a characters bounds
      */
     public function getScore() {
-        $x = $this->bar->getX();
-        $width = $this->bar->getWidth();
+        $x = $this->bars[$this->bar]->getX();
+        $width = $this->bars[$this->bar]->getWidth();
 
         $segment = 1 / $width;
 
         $ticks = $this->ticks;
-        $tickInterval = $this->bar->getSpeed();
+        $tickInterval = $this->bars[$this->bar]->getSpeed();
 
         $percent = $ticks / $tickInterval;
         
@@ -131,6 +180,10 @@ class Game {
     }
 
     public function draw() {
-        Config::draw($this->bar->draw());
+        $d = $this->bars[$this->bar]->draw();
+        
+        $d .= " bar: " . $this->bar . "\n";
+
+        Config::draw($d);
     }
 }

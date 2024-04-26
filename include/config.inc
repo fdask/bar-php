@@ -4,6 +4,22 @@ class Config {
     public static $defaultTickInterval = 200;
     public static $debug = true;
 
+    public static function arrowLeft() {
+		return json_decode('"\u2190"');
+	}
+
+	public static function arrowRight() {
+		return json_decode('"\u2192"');
+	}
+
+	public static function arrowUp() {
+		return json_decode('"\u2191"');
+	}
+
+	public static function arrowDown() {
+		return json_decode('"\u2193"');
+	}
+
     public static function keypressLeftArrow() {
         return chr(27) . chr(91) . chr(68);
     }
@@ -18,6 +34,14 @@ class Config {
 
     public static function keypressShiftRightArrow() {
         return chr(27) . chr(91) . chr(49) . chr(59) . chr(50) . chr(67);
+    }
+
+    public static function keypressUpArrow() {
+        return chr(27) . chr(91) . chr(65);
+    }
+
+    public static function keypressDownArrow() {
+        return chr(27) . chr(91) . chr(66);
     }
 
     public static function waitForInput() {
@@ -57,7 +81,7 @@ class Config {
         if (!Config::$debug) {
             system("clear");
         }
-        
+
         echo $d;
     }
 }
