@@ -14,27 +14,42 @@ class Game {
        
         // populate the game!
         $b = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
-        $c = new Bar(40, 2000);   
-        $d = new Bar(rand(20, 100), rand(300, 1000));
-        
-        $d->addRandomRock();
-
         $this->bars[] = $b;
-        $this->bars[] = $c;
-        $this->bars[] = $d;
-
-        // add doors to get between the bars
-        $this->addDoor(0, 1, 3, 3);
-        $this->addDoor(1, 2, 20, 20);
-        $this->addDoor(2, 0, 10, 30);
 
         // initialize some settings
         $this->bar = 0; 
         $this->ticks = 0;
         $this->doubleSpeed = false;
 
+        $this->addBar();
+
         // enter the main loop
         $this->gameLoop();
+    }
+
+    public function addBar() {
+        $width = rand(Config::$minBarWidth, Config::$maxBarWidth);
+        $speed = rand(Config::$minBarSpeed, Config::$maxBarSpeed);
+
+        $bar = new Bar($width, $speed);
+        $destX = rand(0, $width - 1);
+        $origX = $this->bars[$this->bar]->getUnoccupiedX();
+
+        // add a door
+        $orig = count($this->bars) - 1;
+        $dest = count($this->bars);
+
+        $this->bars[] = $bar;
+
+        $this->addDoor($orig, $dest, $origX, $destX);
+    }
+
+    public function setBar($b) {
+        $this->bar = $b;
+
+        if ($b == count($this->bars) - 1) {
+            $this->addBar();
+        }
     }
 
     public function addDoor($origBar, $destBar, $origX, $destX) {
@@ -43,7 +58,7 @@ class Game {
             $doorB = new Door($destBar, $destX, $origBar, $origX, Door::$dirDown);
             $this->bars[$origBar]->addContent($origX, $doorA);
             $this->bars[$destBar]->addContent($destX, $doorB);
-        }
+        } 
     }
 
     public function gameLoop() {
@@ -82,7 +97,7 @@ class Game {
                             $olddir = $this->bars[$this->bar]->getDir();
 
                             // go to the $dest bar
-                            $this->bar = $dest;
+                            $this->setBar($dest);
 
                             // we need to figure out whee we're coming out
                             $this->bars[$this->bar]->setX($destX);
@@ -109,18 +124,21 @@ class Game {
                     break;
                 case 'c':
                     // clear out the marks
-                    $this->bars[$this->bar]->clearMarks();
-
+                    
                     break;
                 case Config::keypressShiftRightArrow():
                     if ($this->bars[$this->bar]->getDir() == Bar::$dirRight) {
                         $this->doubleSpeed = true;
+                    } else {
+                        $this->bars[$this->bar]->switchDir();
                     }
 
                     break;
                 case Config::keypressShiftLeftArrow():
                     if ($this->bars[$this->bar]->getDir() == Bar::$dirLeft) {
                         $this->doubleSpeed = true;
+                    } else {
+                        $this->bars[$this->bar]->switchDir();
                     }
 
                     break;
