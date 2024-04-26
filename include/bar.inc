@@ -51,6 +51,14 @@ class Bar {
         return $this->x;
     }
 
+    public function getUnoccupiedX() {
+        do {
+            $x = rand(0, $this->width);
+        } while (!is_null($this->contents[$x]));
+
+        return $x;
+    }
+
     public function setX($x) {
         $this->x = $x;
     }
