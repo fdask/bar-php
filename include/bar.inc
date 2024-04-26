@@ -3,10 +3,9 @@ class Bar {
     private $x;
     private $width;
     private $dir;
-    private $marks;
     private $lastScore;
     private $speed;
-    private $doors;
+    private $contents;
 
     public static $dirLeft = "LEFT";
     public static $dirRight = "RIGHT";
@@ -16,37 +15,24 @@ class Bar {
         $this->width = $width;
         $this->speed = $speed;
         $this->dir = Bar::$dirRight;
-        $this->marks = array();
-        $this->doors = array();
+    
+        $this->contents = null;
+
+        for ($x = 0; $x < $this->width; $x++) {
+            $this->contents[$x] = null;
+        }
     }
 
-    public function addDoor(Door $d) {
-        $this->doors[] = $d;
+    public function addContent($x, $c) {
+        $this->contents[$x] = $c;
     }
 
-    public function getDoors() {
-        return $this->doors;
-    }
-
-    // get the X of a door with a specific destination
-    public function getDoorX($dest) {
-        foreach ($this->doors as $door) {
-            if ($door->getDest() == $dest) {
-                $x = $door->getX();
-
-                return $x;
-            }
+    public function getContents($x = null) {
+        if (is_null($x)) {
+            $x = $this->x;
         }
 
-        return false;
-    }
-
-    public function getDoorDir() {
-        foreach ($this->doors as $door) {
-            if ($this->x == $door->getX()) {
-                return $door->getDir();
-            }
-        }
+        return $this->contents[$x];
     }
 
     public function getSpeed() {
@@ -59,14 +45,6 @@ class Bar {
 
     public function setLastScore($ls) {
         $this->lastScore = $ls;
-    }
-
-    public function clearMarks() {
-        $this->marks = array();
-    }
-
-    public function addMark() {
-        $this->marks[] = $this->x;
     }
 
     public function getX() {
@@ -111,12 +89,10 @@ class Bar {
     }
 
     public function onDoor() {
-        $doors = $this->getDoors();
+        $c = $this->getContents($this->x);
 
-        foreach ($doors as $door) {
-            if ($this->x == $door->getX()) {
-                return $door->getDest();
-            }
+        if (!is_null($c) && $c instanceof Door) {
+            return true;
         }
 
         return false;
@@ -150,39 +126,25 @@ class Bar {
     public function draw() {
         $ret = "";
 
-        $gotChar = false;
-        $doors = $this->getDoors();
-        
         for ($x = 0; $x < $this->width; $x++) {
-            $gotChar = false;
+            $c = $this->getContents($x);
+                        
+            if (!is_null($c)) {
+                if ($c instanceof Door) {
+                    $dir = $c->getDir();
 
-            // are we on a door
-            if (count($doors)) {
-                foreach ($doors as $door) {
-                    if ($x == $door->getX()) {
-                        $dir = $door->getDir();
-
-                        if ($dir == Door::$dirUp) {
-                            //echo "Door going up!\n";
-                            $ret .= Config::arrowUp();
-                        } else {
-                            //echo "Door doing down!\n";
-                            $ret .= Config::arrowDown();
-                        }
-
-                        $gotChar = true;
+                    if ($dir == Door::$dirUp) {
+                        //echo "Door going up!\n";
+                        $ret .= Config::arrowUp();
+                    } else {
+                        //echo "Door doing down!\n";
+                        $ret .= Config::arrowDown();
                     }
                 }
-            }
-            
-            if (!$gotChar) {
-                if ($x == $this->x) {
-                    $ret .= "|";
-                } else if (in_array($x, $this->marks)) {
-                    $ret .= "m";
-                } else {
-                    $ret .= "-";
-                }
+            } else if ($x == $this->x) {
+                $ret .= "|";
+            } else {
+                $ret .= "-";
             }
         }
 
