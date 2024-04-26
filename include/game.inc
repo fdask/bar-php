@@ -11,27 +11,37 @@ class Game {
 		system("stty -icanon -echo");
 
         echo "\n";
-
-        $this->bar = 0; 
+       
+        // populate the game!
         $b = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
-        $b->addDoor(new Door(3, 1, Door::$dirUp));
-        $b->addDoor(new Door(30, 2, Door::$dirDown));
-
-        $c = new Bar(30, 3000);
-        $c->addDoor(new Door(25, 0, Door::$dirDown));
-        $c->addDoor(new Door(3, 2, Door::$dirUp));
-
-        $d = new Bar(rand(20, 100), rand(300, 3000));
-        $d->addDoor(new Door(10, 0, Door::$dirUp));
-        $d->addDoor(new Door(20, 1, Door::$dirDown));
+        $c = new Bar(40, 2000);   
+        $d = new Bar(rand(20, 100), rand(300, 1000));
+        
         $this->bars[] = $b;
         $this->bars[] = $c;
         $this->bars[] = $d;
-        
+
+        // add doors to get between the bars
+        $this->addDoor(0, 1, 3, 3);
+        $this->addDoor(1, 2, 20, 20);
+        $this->addDoor(2, 0, 10, 30);
+
+        // initialize some settings
+        $this->bar = 0; 
         $this->ticks = 0;
         $this->doubleSpeed = false;
 
+        // enter the main loop
         $this->gameLoop();
+    }
+
+    public function addDoor($origBar, $destBar, $origX, $destX) {
+        if (isset($this->bars[$origBar]) && isset($this->bars[$destBar])) {
+            $doorA = new Door($origBar, $origX, $destBar, $destX, Door::$dirUp);
+            $doorB = new Door($destBar, $destX, $origBar, $origX, Door::$dirDown);
+            $this->bars[$origBar]->addContent($origX, $doorA);
+            $this->bars[$destBar]->addContent($destX, $doorB);
+        }
     }
 
     public function gameLoop() {
@@ -55,33 +65,30 @@ class Game {
                 case Config::keypressUpArrow():
                 case Config::keypressDownArrow():
                     // check to see if we hit a doorway
-                    $dest = $this->bars[$this->bar]->onDoor();
-
-                    // we're on a door.  change to it!
-                    if ($dest !== false) {
-                        //echo "ON THE DOOR!\n";
-                        
-                        $dir = $this->bars[$this->bar]->getDoorDir();
-
-                        //echo "dir is '$dir'\n";
+                    if ($this->bars[$this->bar]->onDoor()) {
+                        $door = $this->bars[$this->bar]->getContents();
+                        $dest = $door->getDest();
+                        $destX = $door->getDestX();
+                        $dir = $door->getDir();
 
                         if (
                             ($dir == Door::$dirUp && $c == Config::keypressUpArrow()) ||
                             ($dir == Door::$dirDown && $c == Config::keypressDownArrow())
                         ) {
+                            // go through the door
                             $oldbar = $this->bar;
                             $olddir = $this->bars[$this->bar]->getDir();
+
+                            // go to the $dest bar
                             $this->bar = $dest;
 
-                            $newX = $this->bars[$this->bar]->getDoorX($oldbar);
-                            //echo "newX is $newX\n";
-                            $this->bars[$this->bar]->setX($newX);
+                            // we need to figure out whee we're coming out
+                            $this->bars[$this->bar]->setX($destX);
                             $this->bars[$this->bar]->setDir($olddir);
                         }
                     } else {
                         echo "MISSED THE DOOR!\n";
                     }
-
                 
                     break;
                 case Config::keypressLeftArrow():
