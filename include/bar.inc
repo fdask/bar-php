@@ -48,7 +48,7 @@ class Bar {
 
     public function getUnoccupiedX() {
         do {
-            $x = rand(0, $this->width);
+            $x = rand(0, $this->width - 1);
         } while (!is_null($this->contents[$x]));
 
         return $x;
