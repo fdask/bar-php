@@ -5,6 +5,8 @@ class Config {
     public static $minBarSpeed = 250;
     public static $maxBarSpeed = 1800;
 
+    public static $defaultHealth = 10;
+    
     public static $debug = true;
 
     public static function arrowLeft() {

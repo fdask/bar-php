@@ -7,6 +7,7 @@ class Game {
     private $lastScore;
     private $doubleSpeed;
     private $targetBar;
+    private $health;
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -23,6 +24,7 @@ class Game {
 
         // initialize some settings
         $this->targetBar = 0;
+        $this->health = Config::$defaultHealth;
         $this->lastScore = null;
         $this->bar = 0; 
         $this->ticks = 0;
@@ -259,7 +261,8 @@ class Game {
     public function draw() {
         $d = $this->bars[$this->bar]->draw();
 
-        $d .= " b: " . $this->bar . "/" . count($this->bars) . " (" . $this->targetBar . ")";
+        $d .= " b: " . ($this->bar + 1) . "/" . count($this->bars) . " (" . ($this->targetBar + 1) . ")";
+        $d .= " h: " . $this->health;
 
         if (!is_null($this->lastScore)) {
             $d .= " [" . $this->lastScore . "%]";
