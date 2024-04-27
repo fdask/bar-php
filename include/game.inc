@@ -6,6 +6,7 @@ class Game {
     private $ticks;
     private $lastScore;
     private $doubleSpeed;
+    private $targetBar;
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -18,6 +19,7 @@ class Game {
         $this->bars[] = $b;
 
         // initialize some settings
+        $this->targetBar = 0;
         $this->lastScore = null;
         $this->bar = 0; 
         $this->ticks = 0;
@@ -25,8 +27,25 @@ class Game {
 
         $this->addBar();
 
+        $this->addTarget();
+
         // enter the main loop
         $this->gameLoop();
+    }
+
+    public function addTarget($bar = null, $x = null) {
+        if (is_null($bar)) {
+            $bar = $this->bar;
+        }
+
+        if (is_null($x)) {
+            $x = $this->bars[$bar]->getUnoccupiedX();
+        }
+
+        $t = new Target($x);
+
+        $this->targetBar = $bar;
+        $this->bars[$bar]->addContent($x, $t);
     }
 
     public function addBar() {
@@ -79,6 +98,20 @@ class Game {
 
                     // get the last score
                     $this->lastScore = $this->getScore();
+
+                    // if we're on a target, remove it
+                    $curX = $this->bars[$this->bar]->getX();
+                    $targets = $this->bars[$this->bar]->getTargets();
+
+                    if (in_array($curX, $targets)) {
+                        $this->bars[$this->bar]->clearTargets();
+
+                        // add a new target elsewheres
+                        $randBar = rand(0, count($this->bars) - 1);
+                        $randX = $this->bars[$randBar]->getUnoccupiedX();
+
+                        $this->addTarget($randBar, $randX);
+                    }
 
                     break;
                 case Config::keypressUpArrow():
@@ -223,7 +256,7 @@ class Game {
     public function draw() {
         $d = $this->bars[$this->bar]->draw();
 
-        $d .= " bar: " . $this->bar;
+        $d .= " b: " . $this->bar . "/" . count($this->bars) . " (" . $this->targetBar . ")";
 
         if (!is_null($this->lastScore)) {
             $d .= " [" . $this->lastScore . "%]";
