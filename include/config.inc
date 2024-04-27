@@ -1,17 +1,20 @@
 <?php
 class Config {
-    public static $minBarWidth = 10;
+    public static $minBarWidth = 15;
     public static $maxBarWidth = 100;
     public static $minBarSpeed = 250;
     public static $maxBarSpeed = 1800;
 
     public static $defaultHealth = 10;
-    public static $defaultShots = 3;
+    public static $defaultShots = 8;
 
     public static $bumperNoopChar = '@';
     public static $bumperDmgChar = 'X';
     public static $bumperBaseChar = 'B';
     
+    public static $targetCountStart = 5;
+    public static $targetSizeStart = 3;
+
     public static $debug = true;
 
     public static function arrowLeft() {
