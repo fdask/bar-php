@@ -85,6 +85,13 @@ class Game {
     public function reset() {
         $this->bar = 0;
         $this->bars = array();
+
+        $width = rand(Config::$minBarWidth, Config::$maxBarWidth);
+        $speed = rand($this->level->minBarSpeed, $this->level->maxBarSpeed);
+
+        $b = new Bar($width, $speed);
+        $this->bars[] = $b;
+        
         $this->addBar();
 
         // add the initial target
