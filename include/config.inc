@@ -8,6 +8,10 @@ class Config {
     public static $defaultHealth = 10;
     public static $defaultShots = 3;
 
+    public static $bumperNoopChar = '@';
+    public static $bumperDmgChar = 'X';
+    public static $bumperBaseChar = 'B';
+    
     public static $debug = true;
 
     public static function arrowLeft() {

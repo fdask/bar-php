@@ -9,6 +9,12 @@ class Game {
     private $targetBar;
     private $health;
     private $shots;
+    private $leftBumper;
+    private $rightBumper;
+
+    public static $bumperDmg = 'DMG';
+    public static $bumperNoop = 'NOOP';
+    public static $bumperBase = 'BASE';
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -16,12 +22,16 @@ class Game {
 
         echo "\n";
        
-        // populate the game!
+        // populate the initial bar!
         $width = rand(Config::$minBarWidth, Config::$maxBarWidth);
         $speed = rand(Config::$minBarSpeed, Config::$maxBarSpeed);
 
         $b = new Bar($width, $speed);
         $this->bars[] = $b;
+
+        // populate the initial bumpers
+        $this->leftBumper = Game::$bumperBase;
+        $this->rightBumper = Game::$bumperNoop;
 
         // initialize some settings
         $this->targetBar = 0;
@@ -75,8 +85,26 @@ class Game {
     public function setBar($b) {
         $this->bar = $b;
 
+        // if we're at the upper limit, add a new bar
         if ($b == count($this->bars) - 1) {
             $this->addBar();
+        }
+
+        // set the left and right bumper
+        if ($this->bar == 0) {
+            $this->leftBumper = Game::$bumperBase;
+        } else {
+            if (rand(0, 1)) {
+                $this->leftBumper = Game::$bumperDmg;
+            } else {
+                $this->leftBumper = Game::$bumperNoop;
+            }
+        }
+
+        if (rand(0, 1)) {
+            $this->rightBumper = Game::$bumperDmg;
+        } else {
+            $this->rightBumper = Game::$bumperNoop;
         }
     }
 
@@ -149,9 +177,7 @@ class Game {
                             $this->bars[$this->bar]->setX($destX);
                             $this->bars[$this->bar]->setDir($olddir);
                         }
-                    } else {
-                        echo "MISSED THE DOOR!\n";
-                    }
+                    } 
                 
                     break;
                 case Config::keypressLeftArrow():
@@ -222,9 +248,28 @@ class Game {
                 $this->ticks = 0;
                 $this->bars[$this->bar]->tick();
 
-                // reset doublespeed if we hit an edge
+                // if we hit an edge
                 if ($this->bars[$this->bar]->onEdge()) {
                     $this->doubleSpeed = false;
+
+                    // check what type of bumper we've hit
+                    if ($this->bars[$this->bar]->getX() == 0) {
+                        if ($this->leftBumper == Game::$bumperDmg) {
+                            $this->health--;
+                        } else if ($this->leftBumper == Game::$bumperBase) {
+                            $this->shots = Config::$defaultShots;
+                        }
+                    } else {
+                        if ($this->rightBumper == Game::$bumperDmg) {
+                            $this->health--;
+                        }
+                    }
+
+                    if ($this->health <= 0) {
+                        echo "OUT OF HEALTH\n";
+
+                        $this->gameOver();
+                    }
                 }
 
                 $this->draw();
@@ -265,7 +310,35 @@ class Game {
     }
 
     public function draw() {
-        $d = $this->bars[$this->bar]->draw();
+        switch ($this->leftBumper) {
+            case Game::$bumperDmg:
+                $d = Config::$bumperDmgChar;
+                break;
+            case Game::$bumperBase:
+                $d = Config::$bumperBaseChar;
+                break;
+            case Game::$bumperNoop:
+                $d = Config::$bumperNoopChar;
+                break;
+            default:
+                // do nothing
+        }
+
+        $d .= $this->bars[$this->bar]->draw();
+
+        switch ($this->rightBumper) {
+            case Game::$bumperDmg:
+                $d .= Config::$bumperDmgChar;
+                break;
+            case Game::$bumperBase:
+                $d .= Config::$bumperBaseChar;
+                break;
+            case Game::$bumperNoop:
+                $d .= Config::$bumperNoopChar;
+                break;
+            default:
+                // do nothing
+        }
 
         $d .= " b: " . ($this->bar + 1) . "/" . count($this->bars) . " (" . ($this->targetBar + 1) . ")";
         $d .= " h: " . $this->health . " s: " . $this->shots;
