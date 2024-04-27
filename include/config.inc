@@ -1,8 +1,5 @@
 <?php
 class Config {
-    public static $defaultBarLength = 50;
-    public static $defaultTickInterval = 200;
-
     public static $minBarWidth = 5;
     public static $maxBarWidth = 100;
     public static $minBarSpeed = 250;
