@@ -8,6 +8,7 @@ class Game {
     private $doubleSpeed;
     private $targetBar;
     private $health;
+    private $shots;
 
     public function __construct() {
         $this->term = `stty -g`;
@@ -25,6 +26,7 @@ class Game {
         // initialize some settings
         $this->targetBar = 0;
         $this->health = Config::$defaultHealth;
+        $this->shots = Config::$defaultShots;
         $this->lastScore = null;
         $this->bar = 0; 
         $this->ticks = 0;
@@ -98,24 +100,28 @@ class Game {
 
             switch ($c) {
                 case ' ':
-                    // switch direction
-                    $this->bars[$this->bar]->switchDir();
+                    if ($this->shots > 0) {
+                        // switch direction
+                        $this->bars[$this->bar]->switchDir();
 
-                    // get the last score
-                    $this->lastScore = $this->getScore();
+                        // get the last score
+                        $this->lastScore = $this->getScore();
 
-                    // if we're on a target, remove it
-                    $curX = $this->bars[$this->bar]->getX();
-                    $targets = $this->bars[$this->bar]->getTargets();
+                        // if we're on a target, remove it
+                        $curX = $this->bars[$this->bar]->getX();
+                        $targets = $this->bars[$this->bar]->getTargets();
 
-                    if (in_array($curX, $targets)) {
-                        $this->bars[$this->bar]->clearTargets();
+                        if (in_array($curX, $targets)) {
+                            $this->bars[$this->bar]->clearTargets();
 
-                        // add a new target elsewheres
-                        $randBar = rand(0, count($this->bars) - 1);
-                        $randX = $this->bars[$randBar]->getUnoccupiedX();
+                            // add a new target elsewheres
+                            $randBar = rand(0, count($this->bars) - 1);
+                            $randX = $this->bars[$randBar]->getUnoccupiedX();
 
-                        $this->addTarget($randBar, $randX);
+                            $this->addTarget($randBar, $randX);
+                        }
+
+                        $this->shots--;
                     }
 
                     break;
@@ -262,7 +268,7 @@ class Game {
         $d = $this->bars[$this->bar]->draw();
 
         $d .= " b: " . ($this->bar + 1) . "/" . count($this->bars) . " (" . ($this->targetBar + 1) . ")";
-        $d .= " h: " . $this->health;
+        $d .= " h: " . $this->health . " s: " . $this->shots;
 
         if (!is_null($this->lastScore)) {
             $d .= " [" . $this->lastScore . "%]";
