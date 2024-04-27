@@ -15,7 +15,10 @@ class Game {
         echo "\n";
        
         // populate the game!
-        $b = new Bar(Config::$defaultBarLength, Config::$defaultTickInterval);
+        $width = rand(Config::$minBarWidth, Config::$maxBarWidth);
+        $speed = rand(Config::$minBarSpeed, Config::$maxBarSpeed);
+
+        $b = new Bar($width, $speed);
         $this->bars[] = $b;
 
         // initialize some settings
