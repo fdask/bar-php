@@ -1,14 +1,36 @@
 <?php
 class Game {
+    // save terminal settings to restore later
     private $term;
+
+    // what bar # are we currently on
     private $bar;
+
+    // the collection of bars
     private $bars;
+
+    // main game timer
     private $ticks;
+
+    // % from our last shot
     private $lastScore;
+
+    // boolean
     private $doubleSpeed;
+
+    // what bar # is the target on
     private $targetBar;
+
+    // player stats
     private $health;
     private $shots;
+    private $kills;
+    private $misses;
+
+    // the level data object
+    private $level;
+
+    // bumpers
     private $leftBumper;
     private $rightBumper;
 
@@ -22,9 +44,11 @@ class Game {
 
         echo "\n";
        
+        $this->level = new Level();
+
         // populate the initial bar!
         $width = rand(Config::$minBarWidth, Config::$maxBarWidth);
-        $speed = rand(Config::$minBarSpeed, Config::$maxBarSpeed);
+        $speed = rand($this->level->minBarSpeed, $this->level->maxBarSpeed);
 
         $b = new Bar($width, $speed);
         $this->bars[] = $b;
@@ -34,6 +58,8 @@ class Game {
         $this->rightBumper = Game::$bumperNoop;
 
         // initialize some settings
+        $this->misses = 0;
+        $this->kills = 0;
         $this->targetBar = 0;
         $this->health = Config::$defaultHealth;
         $this->shots = Config::$defaultShots;
@@ -42,12 +68,31 @@ class Game {
         $this->ticks = 0;
         $this->doubleSpeed = false;
 
+        // add the initial bar
         $this->addBar();
 
-        $this->addTarget();
+        // add the initial target
+        if ($this->level->targetSize > 1) {
+            $this->addWideTarget($this->level->targetSize);
+        } else {
+            $this->addTarget();    
+        }
 
         // enter the main loop
         $this->gameLoop();
+    }
+
+    public function reset() {
+        $this->bar = 0;
+        $this->bars = array();
+        $this->addBar();
+
+        // add the initial target
+        if ($this->level->targetSize > 1) {
+            $this->addWideTarget($this->level->targetSize);
+        } else {
+            $this->addTarget();    
+        }
     }
 
     public function addTarget($bar = null, $x = null) {
@@ -63,6 +108,18 @@ class Game {
 
         $this->targetBar = $bar;
         $this->bars[$bar]->addContent($x, $t);
+    }
+
+    public function addWideTarget($width, $bar = null) {
+        if (is_null($bar)) {
+            $bar = $this->bar;
+        }
+
+        $xs = $this->bars[$bar]->getUnoccupiedXStretch($width);
+
+        foreach ($xs as $x) {
+            $this->addTarget($bar, $x);
+        }
     }
 
     public function addBar() {
@@ -140,13 +197,38 @@ class Game {
                         $targets = $this->bars[$this->bar]->getTargets();
 
                         if (in_array($curX, $targets)) {
+                            // HIT
+                            $this->kills++;
+                            $this->level->targetProgress++;
+
+                            // check to see if this clears the level
+                            if ($this->level->targetProgress >= $this->level->targetCount) {
+                                // level up
+                                $this->level->levelUp();
+
+                                // reset the level
+                                $this->reset();
+                            }
+
                             $this->bars[$this->bar]->clearTargets();
 
                             // add a new target elsewheres
                             $randBar = rand(0, count($this->bars) - 1);
-                            $randX = $this->bars[$randBar]->getUnoccupiedX();
+                            
+                            if ($this->level->targetSize > 1) {
+                                $xs = $this->bars[$randBar]->getUnoccupiedXStretch($this->level->targetSize);
 
-                            $this->addTarget($randBar, $randX);
+                                foreach ($xs as $x) {
+                                    $this->addTarget($randBar, $x);
+                                }
+                            } else {
+                                $randX = $this->bars[$randBar]->getUnoccupiedX();
+                            
+                                $this->addTarget($randBar, $randX);
+                            }
+                        } else {
+                            // MISS
+                            $this->misses++;
                         }
 
                         $this->shots--;
@@ -341,7 +423,9 @@ class Game {
         }
 
         $d .= " b: " . ($this->bar + 1) . "/" . count($this->bars) . " (" . ($this->targetBar + 1) . ")";
-        $d .= " h: " . $this->health . " s: " . $this->shots;
+        $d .= " h: " . $this->health . " s: " . $this->shots . " l: " . $this->level->level . " r: " . ($this->level->targetCount - $this->level->targetProgress);
+        
+        //$d .= " k: " . $this->kills . " m: " . $this->misses;
 
         if (!is_null($this->lastScore)) {
             $d .= " [" . $this->lastScore . "%]";

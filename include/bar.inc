@@ -62,6 +62,27 @@ class Bar {
         return $x;
     }
 
+    public function getUnoccupiedXStretch($width) {       
+        // find a contiguous free space clump of $width
+        do {
+            $ret = array();
+
+            $start = rand(0, ($this->width - 1 - $width));
+
+            $occupied = false;
+
+            for ($x = $start; $x < $start + $width; $x++) {
+                if (!is_null($this->contents[$x])) {
+                    $occupied = true;
+                } else {
+                    $ret[] = $x;
+                }
+            }
+        } while ($occupied == true);
+
+        return $ret;
+    }
+
     public function setX($x) {
         $this->x = $x;
     }
