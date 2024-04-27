@@ -22,6 +22,14 @@ class Bar {
         }
     }
 
+    public function clearTargets() {
+        for ($x = 0; $x < count($this->contents); $x++) {
+            if ($this->contents[$x] instanceof Target) {
+                $this->contents[$x] = null;
+            }
+        }
+    }
+
     public function addContent($x, $c) {
         $this->contents[$x] = $c;
     }
@@ -86,6 +94,18 @@ class Bar {
         return $ret;
     }
 
+    public function getTargets() {
+        $ret = array();
+
+        for ($x = 0; $x < $this->width; $x++) {
+            if ($this->contents[$x] instanceof Target) {
+                $ret[] = $x;
+            }
+        }
+
+        return $ret;
+    }
+
     public function moveLeft() {
         if ($this->x > 0 && (!in_array(($this->x - 1), $this->getRocks()))) {
             $this->x--;
@@ -116,6 +136,16 @@ class Bar {
         $c = $this->getContents($this->x);
 
         if (!is_null($c) && $c instanceof Door) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function onTarget() {
+        $c = $this->getContents($this->x);
+
+        if (!is_null($c) && $c instanceof Target) {
             return true;
         }
 
@@ -157,14 +187,14 @@ class Bar {
                     $dir = $c->getDir();
 
                     if ($dir == Door::$dirUp) {
-                        //echo "Door going up!\n";
                         $ret .= Config::arrowUp();
                     } else {
-                        //echo "Door doing down!\n";
                         $ret .= Config::arrowDown();
                     }
                 } else if ($c instanceof Rock) {
                     $ret .= "*";
+                } else if ($c instanceof Target) {
+                    $ret .= Colors::bg_color('green', '#');
                 }
             } else if ($x == $this->x) {
                 $ret .= "|";
