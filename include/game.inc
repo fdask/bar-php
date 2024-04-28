@@ -191,6 +191,11 @@ class Game {
         } else {
             $this->rightBumper = Game::$bumperNoop;
         }
+
+        if ($this->level->rocks && empty($this->bars[$this->bar]->getRocks())) {
+            // add a random rock to the level
+            $this->bars[$this->bar]->addRandomRock();
+        }
     }
 
     public function addDoor($origBar, $destBar, $origX, $destX) {
@@ -343,12 +348,6 @@ class Game {
                     $this->doubleSpeed = true;
 
                     break;
-                case 'm':
-                    // mark
-                    $this->bars[$this->bar]->addMark();
-                    $this->bars[$this->bar]->switchDir();
-
-                    break;
                 case 'q':
                     // quit the game
                     $this->gameOver();
@@ -359,12 +358,26 @@ class Game {
                     break;
             }
 
+            // TICK STUFF
             $this->ticks++;
 
             $x = $this->bars[$this->bar]->getX();
             $speed = $this->bars[$this->bar]->getSpeed();
+            $rocks = $this->bars[$this->bar]->getRocks();
+            $dir = $this->bars[$this->bar]->getDir();
 
             if ($this->doubleSpeed) {
+                if ($dir == Bar::$dirLeft) {
+                    if (in_array($x - 1, $rocks)) {
+                        // destroy the rock
+                        $this->bars[$this->bar]->clearRocks();
+                    } 
+                } else {
+                    if (in_array($x + 1, $rocks)) {
+                        $this->bars[$this->bar]->clearRocks();
+                    }
+                }
+
                 $speed = floor($speed / 2);
             }
 

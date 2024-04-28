@@ -130,7 +130,7 @@ class Bar {
     public function moveLeft() {
         if ($this->x > 0 && (!in_array(($this->x - 1), $this->getRocks()))) {
             $this->x--;
-        } else {
+        } else {    
             $this->dir = Bar::$dirRight;
             $this->x++;
         }
@@ -179,6 +179,14 @@ class Bar {
         } while (!is_null($this->contents[$x]));
 
         $this->contents[$x] = new Rock($x);
+    }
+
+    public function clearRocks() {
+        for ($x = 0; $x < count($this->contents); $x++) {
+            if ($this->contents[$x] instanceof Rock) {
+                $this->contents[$x] = null;
+            }
+        }
     }
 
     public function getDir() {
