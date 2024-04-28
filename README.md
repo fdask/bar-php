@@ -20,3 +20,7 @@ Shift left or right will activate DOUBLE SPEED.
 Avoid bouncing off the walls with an X.  They will deplete your health.
 
 Up or down arrows will follow the doors.
+
+b: <current floor>/<max floor> (<floor containing target>)
+h: <health> s: <shots remaining> l: <level #> r: <remaining targets in this level>
+score: your score, silly!
