@@ -15,7 +15,8 @@ class Config {
     public static $targetCountStart = 5;
     public static $targetSizeStart = 3;
 
-    public static $debug = false;
+    public static $statColorDuration = 5;
+    public static $debug = true;
 
     public static function arrowLeft() {
 		return json_decode('"\u2190"');
