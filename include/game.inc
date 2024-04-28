@@ -26,6 +26,7 @@ class Game {
     private $shots;
     private $kills;
     private $misses;
+    private $score;
 
     // the level data object
     private $level;
@@ -67,8 +68,9 @@ class Game {
         $this->bar = 0; 
         $this->ticks = 0;
         $this->doubleSpeed = false;
+        $this->score = 0;
 
-        // add the initial bar
+        // add the second bar
         $this->addBar();
 
         // add the initial target
@@ -83,6 +85,7 @@ class Game {
     }
 
     public function reset() {
+        // reset bars, add two new ones
         $this->bar = 0;
         $this->bars = array();
 
@@ -94,6 +97,10 @@ class Game {
         
         $this->addBar();
 
+        // add initial bumpers
+        $this->leftBumper = Game::$bumperBase;
+        $this->rightBumper = Game::$bumperNoop;
+        
         // add the initial target
         if ($this->level->targetSize > 1) {
             $this->addWideTarget($this->level->targetSize);
@@ -155,7 +162,7 @@ class Game {
         }
 
         // set the left and right bumper
-        if ($this->bar == 0) {
+        if ($this->bar === 0) {
             $this->leftBumper = Game::$bumperBase;
         } else {
             if (rand(0, 1)) {
@@ -202,12 +209,15 @@ class Game {
                         // if we're on a target, remove it
                         $curX = $this->bars[$this->bar]->getX();
                         $targets = $this->bars[$this->bar]->getTargets();
-
+              
                         if (in_array($curX, $targets)) {
                             // HIT
                             $this->kills++;
                             $this->level->targetProgress++;
 
+                            // calculate the score (how close to the center of the target, were we)
+                            $this->score += $this->getTargetScore();
+                            
                             // check to see if this clears the level
                             if ($this->level->targetProgress >= $this->level->targetCount) {
                                 // level up
@@ -219,6 +229,7 @@ class Game {
 
                             $this->bars[$this->bar]->clearTargets();
 
+                            
                             // add a new target elsewheres
                             $randBar = rand(0, count($this->bars) - 1);
                             
@@ -398,6 +409,66 @@ class Game {
         return round(($percentDifference + ($segment * $x)) * 100, 2);
     }
 
+    public function getTargetScore() {
+        // instead of a percentage of the whole board,
+        // get a percentage of where we fall in the target
+        $targets = $this->bars[$this->bar]->getTargets();
+        $width = $this->bars[$this->bar]->getWidth();
+        $x = $this->bars[$this->bar]->getX();
+
+        $segment = 1 / $width;
+        $leftLimit = round((min($targets) * $segment) * 100, 2);
+        $rightLimit = round(((max($targets) + 1) * $segment) * 100, 2);
+
+        $score = $this->getScore();
+        $h = ($rightLimit - $leftLimit) / 2;
+        $half = $leftLimit + $h;
+
+        if ($score >= $half) {
+            $delta = $score - $half;
+        } else {
+            $delta = $half - $score;
+        }
+
+        /*
+        echo "leftLimit: $leftLimit\n";
+        echo "rightLimit: $rightLimit\n";
+        echo "half: $half\n";
+        echo "score: $score\n";
+    
+        echo "delta: $delta / $h\n";
+        */
+
+        $distancePer = $delta / $h;
+
+        $final = round(100 - (100 * $distancePer), 0);
+
+        return $final;
+        /*
+        $ticks = $this->ticks;
+        $tickInterval = $this->bars[$this->bar]->getSpeed();
+
+        $targetLeft = $x * $segment;
+        $targetRight = $x + 1 * $segment;
+
+        $percent = ($ticks / $tickInterval) * 100;
+
+        if ($percent >= 50) {
+            $diff = $percent - 50;
+        } else {
+            $diff = 50 - $percent;
+        }
+
+        echo "We're $percent % along the square via ticks\n";
+        echo "We are $diff away from the midpoint\n";
+        // 100 - (distance from center as a percentage of half the width)
+        $score = 100 - ($diff * 2);
+        echo "Score is $score\n";
+
+        return $score;
+        */
+    }
+
     public function draw() {
         switch ($this->leftBumper) {
             case Game::$bumperDmg:
@@ -431,12 +502,14 @@ class Game {
 
         $d .= " b: " . ($this->bar + 1) . "/" . count($this->bars) . " (" . ($this->targetBar + 1) . ")";
         $d .= " h: " . $this->health . " s: " . $this->shots . " l: " . $this->level->level . " r: " . ($this->level->targetCount - $this->level->targetProgress);
-        
+        $d .= " score: " . $this->score;
         //$d .= " k: " . $this->kills . " m: " . $this->misses;
 
+        /*
         if (!is_null($this->lastScore)) {
             $d .= " [" . $this->lastScore . "%]";
         }
+        */
 
         $d .= "\n";
 
