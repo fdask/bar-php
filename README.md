@@ -21,6 +21,6 @@ Avoid bouncing off the walls with an X.  They will deplete your health.
 
 Up or down arrows will follow the doors.
 
-b: &gt;current floor&lt;/<max floor> (<floor containing target>)
-h: <health> s: <shots remaining> l: <level #> r: <remaining targets in this level>
+b: &lt;current floor&gt;/&lt;max floor&gt; (&lt;floor containing target&gt;)
+h: &lt;health&gt; s: &lt;shots remaining&gt; l: &lt;level #&gt; r: &lt;remaining targets in this level&gt;
 score: your score, silly!
