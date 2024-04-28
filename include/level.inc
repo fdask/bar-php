@@ -1,9 +1,16 @@
 <?php
 class Level {
     public $level;
+    public $levelTicks;
+    public $levelColor;
+
     public $targetCount;
     public $targetSize;
     public $targetProgress;
+    
+    public $targetTicks;
+    public $targetColor;
+
     public $minBarSpeed;
     public $maxBarSpeed;
     public $shotCapacity;
@@ -22,9 +29,13 @@ class Level {
 
     public function levelUp() {
         $this->level++;
+        $this->levelTicks = Config::$statColorDuration;
+        $this->levelColor = 'green';
+
         $this->targetProgress = 0;
         $this->rocks = false;
 
+        // random bonus (or penalty) for reaching the next level
         switch (rand(0, 8)) {
             case 0:
                 // add an extra target
@@ -81,6 +92,22 @@ class Level {
                 break;
             default:
                 // shouldn't be here
+        }
+    }
+
+    public function hit() {
+        $this->targetProgress++;
+        $this->targetTicks = Config::$statColorDuration;
+        $this->targetColor = 'green';
+    }
+
+    public function tick() {
+        if ($this->targetTicks > 0) {
+            $this->targetTicks--;
+        }
+
+        if ($this->levelTicks > 0) {
+            $this->levelTicks--;
         }
     }
 }

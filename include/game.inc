@@ -21,29 +21,11 @@ class Game {
     // what bar # is the target on
     private $targetBar;
 
-    private $targetTicks;
-    private $targetColor;
-
-    // player stats
-    private $health;
-    private $healthTicks;
-    private $healthColor;
-
-    private $shots;
-    private $shotTicks;
-    private $shotColor;
-
-    private $kills;
-    private $misses;
-
-    private $score;
-    private $scoreTicks;
-    private $scoreColor;
+    // the player object
+    private $player;
 
     // the level data object
     private $level;
-    private $levelTicks;
-    private $levelColor;
 
     // bumpers
     private $leftBumper;
@@ -60,6 +42,7 @@ class Game {
         echo "\n";
        
         $this->level = new Level();
+        $this->player = new Player();
 
         // populate the initial bar!
         $width = rand(Config::$minBarWidth, Config::$maxBarWidth);
@@ -72,17 +55,12 @@ class Game {
         $this->leftBumper = Game::$bumperBase;
         $this->rightBumper = Game::$bumperNoop;
 
-        // initialize some settings
-        $this->misses = 0;
-        $this->kills = 0;
+        // initialize some settings       
         $this->targetBar = 0;
-        $this->health = Config::$defaultHealth;
-        $this->shots = Config::$defaultShots;
-        $this->lastScore = null;
+
         $this->bar = 0; 
         $this->ticks = 0;
         $this->doubleSpeed = false;
-        $this->score = 0;
 
         // add the second bar
         $this->addBar();
@@ -218,12 +196,9 @@ class Game {
 
             switch ($c) {
                 case ' ':
-                    if ($this->shots > 0) {
+                    if ($this->player->shots > 0) {
                         // switch direction
                         $this->bars[$this->bar]->switchDir();
-
-                        // get the last score
-                        $this->lastScore = $this->getScore();
 
                         // if we're on a target, remove it
                         $curX = $this->bars[$this->bar]->getX();
@@ -231,31 +206,23 @@ class Game {
               
                         if (in_array($curX, $targets)) {
                             // HIT
-                            $this->kills++;
+                            $this->player->hit();
+                            $this->level->hit();
                             
-                            $this->level->targetProgress++;
-                            $this->targetTicks = 5;
-                            $this->targetColor = 'green';
-
                             // calculate the score (how close to the center of the target, were we)
-                            $this->score += $this->getTargetScore();
-                            $this->scoreTicks = 5;
-                            $this->scoreColor = 'green';
+                            $this->player->addToScore($this->getTargetScore());
                             
                             // check to see if this clears the level
                             if ($this->level->targetProgress >= $this->level->targetCount) {
                                 // level up
                                 $this->level->levelUp();
-                                $this->levelTicks = 5;
-                                $this->levelColor = 'green';
-
+ 
                                 // reset the level
                                 $this->reset();
                             }
 
                             $this->bars[$this->bar]->clearTargets();
-
-                            
+                           
                             // add a new target elsewheres
                             $randBar = rand(0, count($this->bars) - 1);
                             
@@ -272,13 +239,13 @@ class Game {
                             }
                         } else {
                             // MISS
-                            $this->misses++;
+                            $this->player->misses++;
                         }
 
-                        $this->decrShots();
+                        $this->player->decrShots();
                     } else {
-                        $this->shotTicks = 5;
-                        $this->shotColor = 'red';
+                        // player tried to fire but has no shots left
+                        $this->player->decrShots();
                     }
 
                     break;
@@ -383,27 +350,10 @@ class Game {
 
             if ($this->ticks >= $speed) {
                 $this->ticks = 0;
+                $this->level->tick();
+                $this->player->tick();
+        
                 $this->bars[$this->bar]->tick();
-                
-                if ($this->healthTicks > 0) {
-                    $this->healthTicks--;
-                }
-
-                if ($this->shotTicks > 0) {
-                    $this->shotTicks--;
-                }
-
-                if ($this->scoreTicks > 0) {
-                    $this->scoreTicks--;
-                }
-
-                if ($this->levelTicks > 0) {
-                    $this->levelTicks--;
-                }
-
-                if ($this->targetTicks > 0) {
-                    $this->targetTicks--;
-                }
                 
                 // if we hit an edge
                 if ($this->bars[$this->bar]->onEdge()) {
@@ -414,9 +364,7 @@ class Game {
                         if ($this->leftBumper == Game::$bumperDmg) {
                             $this->decrHealth();
                         } else if ($this->leftBumper == Game::$bumperBase) {
-                            $this->shots = Config::$defaultShots;
-                            $this->shotTicks = 5;
-                            $this->shotColor = 'green';
+                            $this->player->resetShots();
                         }
                     } else {
                         if ($this->rightBumper == Game::$bumperDmg) {
@@ -431,18 +379,10 @@ class Game {
         // END OF INFINITE LOOP
     }
 
-    public function decrShots() {
-        $this->shots--;
-        $this->shotTicks = 5;
-        $this->shotColor = "red";
-    }
-
     public function decrHealth() {
-        $this->health--;
-        $this->healthTicks = 5;
-        $this->healthColor = "red";
+        $this->player->decrHealth();
 
-        if ($this->health <= 0) {
+        if ($this->player->health <= 0) {
             echo "OUT OF HEALTH\n";
 
             $this->gameOver();
@@ -451,6 +391,8 @@ class Game {
 
     public function gameOver() {
         echo "GAME OVER\n\n";
+
+        echo $this->player->draw() . "\n";
 
         // quit the game
 		system("stty " . $this->term);
@@ -501,46 +443,15 @@ class Game {
             $delta = $half - $score;
         }
 
-        /*
-        echo "leftLimit: $leftLimit\n";
-        echo "rightLimit: $rightLimit\n";
-        echo "half: $half\n";
-        echo "score: $score\n";
-    
-        echo "delta: $delta / $h\n";
-        */
-
         $distancePer = $delta / $h;
 
         $final = round(100 - (100 * $distancePer), 0);
 
         return $final;
-        /*
-        $ticks = $this->ticks;
-        $tickInterval = $this->bars[$this->bar]->getSpeed();
-
-        $targetLeft = $x * $segment;
-        $targetRight = $x + 1 * $segment;
-
-        $percent = ($ticks / $tickInterval) * 100;
-
-        if ($percent >= 50) {
-            $diff = $percent - 50;
-        } else {
-            $diff = 50 - $percent;
-        }
-
-        echo "We're $percent % along the square via ticks\n";
-        echo "We are $diff away from the midpoint\n";
-        // 100 - (distance from center as a percentage of half the width)
-        $score = 100 - ($diff * 2);
-        echo "Score is $score\n";
-
-        return $score;
-        */
     }
 
     public function draw() {
+        // draw the left bumper
         switch ($this->leftBumper) {
             case Game::$bumperDmg:
                 $d = Config::$bumperDmgChar;
@@ -555,8 +466,10 @@ class Game {
                 // do nothing
         }
 
+        // draw the bar
         $d .= $this->bars[$this->bar]->draw();
 
+        // draw the right bumper
         switch ($this->rightBumper) {
             case Game::$bumperDmg:
                 $d .= Config::$bumperDmgChar;
@@ -571,23 +484,15 @@ class Game {
                 // do nothing
         }
 
-        
         $d .= " b: " . ($this->bar + 1) . "/" . count($this->bars) . " (" . ($this->targetBar + 1) . ")";
-        $d .= " h: " . (($this->healthTicks > 0) ? Colors::fg_color($this->healthColor, $this->health) : $this->health);
-        $d .= " s: " . (($this->shotTicks > 0) ? Colors::fg_color($this->shotColor, $this->shots) : $this->shots);
-        $d .= " l: " . (($this->levelTicks > 0) ? Colors::fg_color($this->levelColor, $this->level->level) : $this->level->level);
+        $d .= " h: " . (($this->player->healthTicks > 0) ? Colors::fg_color($this->player->healthColor, $this->player->health) : $this->player->health);
+        $d .= " s: " . (($this->player->shotTicks > 0) ? Colors::fg_color($this->player->shotColor, $this->player->shots) : $this->player->shots);
+        $d .= " l: " . (($this->level->levelTicks > 0) ? Colors::fg_color($this->level->levelColor, $this->level->level) : $this->level->level);
         
         $remaining = $this->level->targetCount - $this->level->targetProgress;
-        $d .= " r: " . (($this->targetTicks > 0) ? Colors::fg_color($this->targetColor, $remaining) : $remaining);
-        $d .= " score: " . (($this->scoreTicks > 0) ? Colors::fg_color($this->scoreColor, $this->score) : $this->score);
-        //$d .= " k: " . $this->kills . " m: " . $this->misses;
-
-        /*
-        if (!is_null($this->lastScore)) {
-            $d .= " [" . $this->lastScore . "%]";
-        }
-        */
-
+        $d .= " r: " . (($this->level->targetTicks > 0) ? Colors::fg_color($this->level->targetColor, $remaining) : $remaining);
+        $d .= " score: " . (($this->player->scoreTicks > 0) ? Colors::fg_color($this->player->scoreColor, $this->player->score) : $this->player->score);
+        
         $d .= "\n";
 
         Config::draw($d);
