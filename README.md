@@ -16,6 +16,7 @@ Shoot a set number of targets to move on to the next level
 Left and right turn your character.
 
 Shift left or right will activate DOUBLE SPEED.
+Use doublespeed to break through rocks '*'
 
 Avoid bouncing off the walls with an X.  They will deplete your health.
 
