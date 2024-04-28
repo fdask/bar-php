@@ -271,6 +271,9 @@ class Game {
                         }
 
                         $this->decrShots();
+                    } else {
+                        $this->shotTicks = 5;
+                        $this->shotColor = 'red';
                     }
 
                     break;
