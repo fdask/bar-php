@@ -24,7 +24,7 @@ class Level {
         $this->minBarSpeed = Config::$minBarSpeed;
         $this->maxBarSpeed = Config::$maxBarSpeed;
         $this->shotCapacity = Config::$defaultShots;
-        $this->rocks = false;
+        $this->rocks = true;
     }
 
     public function levelUp() {

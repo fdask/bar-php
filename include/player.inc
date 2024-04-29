@@ -69,12 +69,25 @@ class Player {
     }
 
     public function hit() {
+        $this->hits++;
+    }
 
+    public function miss() {
+        $this->misses++;
     }
 
     public function draw() {
-        $ret = "Hits: " . $this->hits . " Misses: " . $this->misses . " / " . ($this->hits + $this->misses);
+        $ret = "Hits: " . $this->hits . " Misses: " . $this->misses;
+        
+        if ($this->hits > 0) {
+            $ret .= " (" . round(($this->hits / ($this->hits + $this->misses)) * 100, 2) . "%)";
+        } else {
+            $ret .= " (0%)";
+        }
 
+        $ret .= " Distance: " . $this->distance;
+        $ret .= " Score: " . $this->score;
+        
         return $ret;
     }
 }

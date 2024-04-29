@@ -239,7 +239,7 @@ class Game {
                             }
                         } else {
                             // MISS
-                            $this->player->misses++;
+                            $this->player->miss();
                         }
 
                         $this->player->decrShots();
@@ -273,6 +273,9 @@ class Game {
                             $this->bars[$this->bar]->setX($destX);
                             $this->bars[$this->bar]->setDir($olddir);
                         }
+
+                        // doublespeed off when changing bars
+                        $this->doubleSpeed = false;
                     } 
                 
                     break;
@@ -467,7 +470,7 @@ class Game {
         }
 
         // draw the bar
-        $d .= $this->bars[$this->bar]->draw();
+        $d .= $this->bars[$this->bar]->draw($this->doubleSpeed);
 
         // draw the right bumper
         switch ($this->rightBumper) {
@@ -489,8 +492,7 @@ class Game {
         $d .= " s: " . (($this->player->shotTicks > 0) ? Colors::fg_color($this->player->shotColor, $this->player->shots) : $this->player->shots);
         $d .= " l: " . (($this->level->levelTicks > 0) ? Colors::fg_color($this->level->levelColor, $this->level->level) : $this->level->level);
         
-        $remaining = $this->level->targetCount - $this->level->targetProgress;
-        $d .= " r: " . (($this->level->targetTicks > 0) ? Colors::fg_color($this->level->targetColor, $remaining) : $remaining);
+        $d .= " r: " . (($this->level->targetTicks > 0) ? Colors::fg_color($this->level->targetColor, $this->level->targetProgress) : $this->level->targetProgress) . "/" . $this->level->targetCount;
         $d .= " score: " . (($this->player->scoreTicks > 0) ? Colors::fg_color($this->player->scoreColor, $this->player->score) : $this->player->score);
         
         $d .= "\n";

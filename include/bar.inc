@@ -205,7 +205,7 @@ class Bar {
         $this->move();
     }
 
-    public function draw() {
+    public function draw($doubleSpeed) {
         $ret = "";
 
         for ($x = 0; $x < $this->width; $x++) {
@@ -226,7 +226,11 @@ class Bar {
                     $ret .= Colors::bg_color('green', '#');
                 }
             } else if ($x == $this->x) {
-                $ret .= "|";
+                if ($doubleSpeed) {
+                    $ret .= Colors::fg_color('white', '|');
+                } else {
+                    $ret .= "|";
+                }
             } else {
                 $ret .= "-";
             }
